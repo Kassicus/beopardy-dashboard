@@ -104,7 +104,7 @@ export function ResultsEntryForm({
     return {
       id: crypto.randomUUID(),
       player_id: "",
-      questions_seen: 0,
+      questions_seen: 20,
       questions_correct: 0,
       points_scored: 0,
       is_winner: false,
@@ -131,7 +131,7 @@ export function ResultsEntryForm({
     return {
       id: crypto.randomUUID(),
       player_id: "",
-      questions_seen: 0,
+      questions_seen: 20,
       questions_correct: 0,
       points_scored: 0,
       final_wager: null,

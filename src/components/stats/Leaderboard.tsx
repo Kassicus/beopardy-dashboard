@@ -149,10 +149,14 @@ export function Leaderboard({ players }: LeaderboardProps) {
     .sort((a, b) => {
       const aVal = currentTab.getValue(a) ?? 0;
       const bVal = currentTab.getValue(b) ?? 0;
-      if (currentTab.sortDesc) {
-        return bVal - aVal;
+      const primarySort = currentTab.sortDesc ? bVal - aVal : aVal - bVal;
+
+      // Use win_percentage as tiebreaker for wins leaderboard
+      if (primarySort === 0 && currentTab.id === "wins") {
+        return (b.win_percentage ?? 0) - (a.win_percentage ?? 0);
       }
-      return aVal - bVal;
+
+      return primarySort;
     });
 
   return (
@@ -203,9 +207,15 @@ export function Leaderboard({ players }: LeaderboardProps) {
                 <TableRow>
                   <TableHead className="w-16">Rank</TableHead>
                   <TableHead>Player</TableHead>
-                  <TableHead className="text-right">Value</TableHead>
-                  <TableHead className="text-right hidden sm:table-cell">Games</TableHead>
-                  <TableHead className="text-right hidden md:table-cell">Win Rate</TableHead>
+                  <TableHead className="text-right">{activeTab === "appearances" ? "Total Appearances" : "Value"}</TableHead>
+                  {!["appearances", "points", "accuracy"].includes(activeTab) && (
+                    <>
+                      <TableHead className="text-right hidden sm:table-cell">
+                        {activeTab === "teamWins" ? "Team Games" : activeTab === "soloWins" ? "Solo Games" : "Games"}
+                      </TableHead>
+                      <TableHead className="text-right hidden md:table-cell">Win Rate</TableHead>
+                    </>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -240,15 +250,23 @@ export function Leaderboard({ players }: LeaderboardProps) {
                       </TableCell>
                       <TableCell className="text-right">
                         <span className={`font-bold ${rank <= 3 ? "text-beo-terracotta" : ""}`}>
-                          {currentTab.formatValue(value)}
+                          {activeTab === "appearances" ? player.total_appearances : currentTab.formatValue(value)}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right hidden sm:table-cell text-text-secondary">
-                        {player.total_appearances}
-                      </TableCell>
-                      <TableCell className="text-right hidden md:table-cell text-text-secondary">
-                        {formatPercentage(player.win_percentage)}
-                      </TableCell>
+                      {!["appearances", "points", "accuracy"].includes(activeTab) && (
+                        <>
+                          <TableCell className="text-right hidden sm:table-cell text-text-secondary">
+                            {activeTab === "teamWins"
+                              ? player.team_appearances
+                              : activeTab === "soloWins"
+                                ? player.solo_appearances
+                                : player.total_appearances}
+                          </TableCell>
+                          <TableCell className="text-right hidden md:table-cell text-text-secondary">
+                            {formatPercentage(player.win_percentage)}
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
                   );
                 })}

@@ -96,6 +96,11 @@ interface TableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
 
 export const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
   ({ children, sortable = false, sortDirection, onSort, className = "", ...props }, ref) => {
+    // Determine flex justification based on text alignment classes
+    const isRightAligned = className.includes("text-right");
+    const isCenterAligned = className.includes("text-center");
+    const justifyClass = isRightAligned ? "justify-end" : isCenterAligned ? "justify-center" : "justify-start";
+
     return (
       <th
         ref={ref}
@@ -108,7 +113,7 @@ export const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
         onClick={sortable ? onSort : undefined}
         {...props}
       >
-        <div className="flex items-center gap-1">
+        <div className={`flex items-center gap-1 ${justifyClass}`}>
           {children}
           {sortable && (
             <span className="ml-1">

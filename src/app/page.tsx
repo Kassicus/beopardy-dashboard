@@ -76,11 +76,13 @@ export default async function HomePage() {
     .limit(5);
 
   // Fetch top performers by wins (with at least 1 appearance)
+  // Sort by total_wins first, then use win_percentage as tiebreaker
   const { data: topWinners } = await supabase
     .from("player_career_stats")
     .select("*")
     .gt("total_appearances", 0)
     .order("total_wins", { ascending: false })
+    .order("win_percentage", { ascending: false })
     .limit(5);
 
   // Calculate total wins for display
