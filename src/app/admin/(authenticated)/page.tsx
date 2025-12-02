@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { StatCard } from "@/components/ui/StatCard";
 import { Button } from "@/components/ui/Button";
-import { UserPlus, TvMinimalPlay, Users, Tv, Trophy } from "lucide-react";
+import { UserPlus, TvMinimalPlay, Users, Tv, Trophy, UsersRound } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 
@@ -23,10 +23,11 @@ export default async function AdminDashboardPage() {
   const appearanceCount = appearancesResult.count ?? 0;
 
   // Get recent episodes needing results
+  // Solo episodes need winner_name, team episodes need winning_team_name
   const { data: episodesNeedingResults } = await supabase
     .from("episode_summary")
     .select("*")
-    .is("winner_name", null)
+    .or("and(episode_type.eq.solo,winner_name.is.null),and(episode_type.eq.team,winning_team_name.is.null)")
     .order("air_date", { ascending: false })
     .limit(5);
 
@@ -144,7 +145,15 @@ export default async function AdminDashboardPage() {
                       className="flex items-center justify-between p-3 bg-beo-cream/20 rounded-lg"
                     >
                       <div>
-                        <p className="font-medium">{episode.title}</p>
+                        <p className="font-medium flex items-center gap-2">
+                          {episode.title}
+                          {episode.episode_type === "team" && (
+                            <span className="inline-flex items-center gap-1 text-xs text-text-muted">
+                              <UsersRound className="h-3 w-3" />
+                              Team
+                            </span>
+                          )}
+                        </p>
                         <p className="text-sm text-text-muted">
                           S{episode.season} E{episode.episode_number} • {episode.air_date}
                         </p>
