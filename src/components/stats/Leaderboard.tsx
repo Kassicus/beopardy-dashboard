@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Trophy, Target, BarChart3, Users, Award, Crown } from "lucide-react";
+import { Trophy, Target, BarChart3, Users, Award, Crown, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
@@ -24,7 +24,7 @@ interface LeaderboardProps {
   players: PlayerStats[];
 }
 
-type LeaderboardType = "wins" | "winRate" | "points" | "accuracy" | "appearances";
+type LeaderboardType = "wins" | "soloWins" | "teamWins" | "winRate" | "points" | "accuracy" | "appearances";
 
 interface LeaderboardTab {
   id: LeaderboardType;
@@ -32,6 +32,8 @@ interface LeaderboardTab {
   icon: React.ReactNode;
   description: string;
   minAppearances?: number;
+  requiresSoloAppearance?: boolean;
+  requiresTeamAppearance?: boolean;
   getValue: (player: PlayerStats) => number | null;
   formatValue: (value: number | null) => string;
   sortDesc: boolean;
@@ -40,10 +42,30 @@ interface LeaderboardTab {
 const leaderboardTabs: LeaderboardTab[] = [
   {
     id: "wins",
-    label: "Most Wins",
+    label: "Total Wins",
     icon: <Trophy className="h-4 w-4" />,
-    description: "Players with the most game victories",
+    description: "Players with the most combined game victories",
     getValue: (p) => p.total_wins,
+    formatValue: (v) => `${v ?? 0} wins`,
+    sortDesc: true,
+  },
+  {
+    id: "soloWins",
+    label: "Solo Wins",
+    icon: <User className="h-4 w-4" />,
+    description: "Players with the most individual game victories",
+    requiresSoloAppearance: true,
+    getValue: (p) => p.solo_wins,
+    formatValue: (v) => `${v ?? 0} wins`,
+    sortDesc: true,
+  },
+  {
+    id: "teamWins",
+    label: "Team Wins",
+    icon: <Users className="h-4 w-4" />,
+    description: "Players with the most team game victories",
+    requiresTeamAppearance: true,
+    getValue: (p) => p.team_wins,
     formatValue: (v) => `${v ?? 0} wins`,
     sortDesc: true,
   },
@@ -68,9 +90,9 @@ const leaderboardTabs: LeaderboardTab[] = [
   },
   {
     id: "accuracy",
-    label: "Correct %",
+    label: "Answered %",
     icon: <Target className="h-4 w-4" />,
-    description: `Highest correct answer rate (min. ${LEADERBOARD_MIN_APPEARANCES} appearances)`,
+    description: `Highest answer rate (min. ${LEADERBOARD_MIN_APPEARANCES} appearances)`,
     minAppearances: LEADERBOARD_MIN_APPEARANCES,
     getValue: (p) => p.accuracy_percentage,
     formatValue: (v) => formatPercentage(v),
@@ -79,7 +101,7 @@ const leaderboardTabs: LeaderboardTab[] = [
   {
     id: "appearances",
     label: "Appearances",
-    icon: <Users className="h-4 w-4" />,
+    icon: <BarChart3 className="h-4 w-4" />,
     description: "Most games played",
     getValue: (p) => p.total_appearances,
     formatValue: (v) => `${v ?? 0} games`,
@@ -112,7 +134,15 @@ export function Leaderboard({ players }: LeaderboardProps) {
       if ((player.total_appearances ?? 0) === 0) return false;
       // Check minimum appearances if required
       if (currentTab.minAppearances) {
-        return (player.total_appearances ?? 0) >= currentTab.minAppearances;
+        if ((player.total_appearances ?? 0) < currentTab.minAppearances) return false;
+      }
+      // Check if solo appearance is required
+      if (currentTab.requiresSoloAppearance) {
+        if ((player.solo_appearances ?? 0) === 0) return false;
+      }
+      // Check if team appearance is required
+      if (currentTab.requiresTeamAppearance) {
+        if ((player.team_appearances ?? 0) === 0) return false;
       }
       return true;
     })
@@ -226,7 +256,11 @@ export function Leaderboard({ players }: LeaderboardProps) {
             </Table>
           ) : (
             <div className="text-center py-12 text-text-muted">
-              {currentTab.minAppearances ? (
+              {currentTab.requiresTeamAppearance ? (
+                <p>No players have participated in team episodes yet.</p>
+              ) : currentTab.requiresSoloAppearance ? (
+                <p>No players have participated in solo episodes yet.</p>
+              ) : currentTab.minAppearances ? (
                 <p>
                   No players with at least {currentTab.minAppearances} appearances yet.
                 </p>

@@ -71,12 +71,13 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     notFound();
   }
 
-  // Fetch appearance history with episode details
+  // Fetch appearance history with episode and team details
   const { data: appearances } = await supabase
     .from("episode_appearances")
     .select(`
       *,
-      episodes (*)
+      episodes (*),
+      episode_teams (*)
     `)
     .eq("player_id", playerStats.id!)
     .order("created_at", { ascending: false });

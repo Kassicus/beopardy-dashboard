@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Calendar, Users, Trophy, Crown, Play } from "lucide-react";
+import { Calendar, Users, Trophy, Crown, Play, UsersRound } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ROUTES } from "@/lib/constants";
@@ -13,7 +13,13 @@ interface EpisodeCardProps {
 }
 
 export function EpisodeCard({ episode }: EpisodeCardProps) {
-  const hasResults = episode.winner_name !== null;
+  const isTeamEpisode = episode.episode_type === "team";
+  const hasResults = isTeamEpisode
+    ? episode.winning_team_name !== null
+    : episode.winner_name !== null;
+  const winnerDisplay = isTeamEpisode
+    ? episode.winning_team_name
+    : episode.winner_name;
 
   // Use stored thumbnail, or generate from YouTube URL as fallback
   const thumbnailUrl = episode.thumbnail_url ||
@@ -59,6 +65,12 @@ export function EpisodeCard({ episode }: EpisodeCardProps) {
               <Badge variant="rose" className="text-xs">
                 S{episode.season} E{episode.episode_number}
               </Badge>
+              {isTeamEpisode && (
+                <Badge variant="cream" className="text-xs gap-1">
+                  <UsersRound className="h-3 w-3" />
+                  Team
+                </Badge>
+              )}
             </div>
             <h3 className="font-semibold text-foreground line-clamp-2">
               {episode.title}
@@ -77,8 +89,8 @@ export function EpisodeCard({ episode }: EpisodeCardProps) {
               <>
                 <div className="flex items-center gap-2">
                   <Badge variant="golden" className="gap-1">
-                    <Crown className="h-3 w-3" />
-                    {episode.winner_name}
+                    {isTeamEpisode ? <UsersRound className="h-3 w-3" /> : <Crown className="h-3 w-3" />}
+                    {winnerDisplay}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-text-muted">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ROUTES } from "@/lib/constants";
 
 export function Footer() {
@@ -7,11 +8,14 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <Link href="/" className="flex items-center gap-2" aria-label="Beopardy Stats - Home">
-              <span className="text-xl font-bold font-display text-beo-terracotta">
-                Beopardy
-              </span>
-              <span className="text-sm font-medium text-text-secondary">Stats</span>
+            <Link href="/" aria-label="Beopardy Stats - Home">
+              <Image
+                src="/logo.svg"
+                alt="Beopardy Stats"
+                width={120}
+                height={32}
+                className="h-8 w-auto"
+              />
             </Link>
             <p className="mt-2 text-sm text-text-muted max-w-md">
               Tracking player statistics from the Smosh Pit Beopardy game show.

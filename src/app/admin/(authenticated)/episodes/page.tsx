@@ -13,7 +13,7 @@ import {
   TableCell,
 } from "@/components/ui/Table";
 import { DeleteButton } from "@/components/shared/DeleteButton";
-import { TvMinimalPlay, Pencil, ClipboardList, Tv, Trophy } from "lucide-react";
+import { TvMinimalPlay, Pencil, ClipboardList, Tv, Trophy, UsersRound } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils/formatters";
@@ -75,7 +75,15 @@ export default async function AdminEpisodesPage() {
                   <TableRow key={episode.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{episode.title}</div>
+                        <div className="font-medium flex items-center gap-2">
+                          {episode.title}
+                          {episode.episode_type === "team" && (
+                            <Badge variant="cream" className="text-xs gap-1">
+                              <UsersRound className="h-3 w-3" />
+                              Team
+                            </Badge>
+                          )}
+                        </div>
                         <div className="text-sm text-text-muted">
                           S{episode.season} E{episode.episode_number}
                         </div>
@@ -85,7 +93,16 @@ export default async function AdminEpisodesPage() {
                       {episode.air_date ? formatDate(episode.air_date) : "—"}
                     </TableCell>
                     <TableCell>
-                      {episode.winner_name ? (
+                      {episode.episode_type === "team" ? (
+                        episode.winning_team_name ? (
+                          <div className="flex items-center gap-1">
+                            <UsersRound className="h-4 w-4 text-beo-golden" />
+                            <span>{episode.winning_team_name}</span>
+                          </div>
+                        ) : (
+                          <Badge variant="cream">No results</Badge>
+                        )
+                      ) : episode.winner_name ? (
                         <div className="flex items-center gap-1">
                           <Trophy className="h-4 w-4 text-beo-golden" />
                           <span>{episode.winner_name}</span>

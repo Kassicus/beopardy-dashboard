@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Trophy, Target, ExternalLink, Crown, Sparkles } from "lucide-react";
+import { Trophy, Target, ExternalLink, Crown, Sparkles, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
+import { Badge } from "@/components/ui/Badge";
 import {
   Table,
   TableHeader,
@@ -18,12 +19,23 @@ interface ResultWithPlayer extends Tables<"episode_appearances"> {
   players: Tables<"players">;
 }
 
+interface TeamWithMembers extends Tables<"episode_teams"> {
+  members: ResultWithPlayer[];
+}
+
 interface EpisodeResultsProps {
   results: ResultWithPlayer[];
   finalBeopardyWinnerId?: string | null;
+  episodeType?: "solo" | "team";
+  teams?: TeamWithMembers[];
 }
 
-export function EpisodeResults({ results, finalBeopardyWinnerId }: EpisodeResultsProps) {
+export function EpisodeResults({
+  results,
+  finalBeopardyWinnerId,
+  episodeType = "solo",
+  teams = [],
+}: EpisodeResultsProps) {
   if (results.length === 0) {
     return (
       <Card variant="outlined">
@@ -39,6 +51,164 @@ export function EpisodeResults({ results, finalBeopardyWinnerId }: EpisodeResult
     );
   }
 
+  const hasFinalBeopardy = !!finalBeopardyWinnerId;
+
+  // Team episode display
+  if (episodeType === "team" && teams.length > 0) {
+    // Sort teams by winner status, then by placement/points
+    const sortedTeams = [...teams].sort((a, b) => {
+      if (a.is_winner && !b.is_winner) return -1;
+      if (!a.is_winner && b.is_winner) return 1;
+      if (a.placement && b.placement) return a.placement - b.placement;
+      return b.total_points - a.total_points;
+    });
+
+    return (
+      <Card variant="outlined">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Team Results ({teams.length} teams, {results.length} participants)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {sortedTeams.map((team, teamIndex) => {
+            // Sort members by points
+            const sortedMembers = [...team.members].sort(
+              (a, b) => b.points_scored - a.points_scored
+            );
+
+            return (
+              <div key={team.id} className="relative">
+                {/* Team color indicator */}
+                {team.team_color && (
+                  <div
+                    className="absolute left-0 top-0 w-1 h-full rounded-l-lg"
+                    style={{ backgroundColor: team.team_color }}
+                  />
+                )}
+
+                <div
+                  className={`
+                    border rounded-lg overflow-hidden
+                    ${team.is_winner ? "ring-2 ring-beo-golden border-beo-golden/50" : "border-border"}
+                  `}
+                >
+                  {/* Team Header */}
+                  <div
+                    className={`
+                      px-4 py-3 flex items-center justify-between
+                      ${team.is_winner ? "bg-beo-golden/10" : "bg-beo-cream/20"}
+                    `}
+                  >
+                    <div className="flex items-center gap-3">
+                      {team.is_winner ? (
+                        <div className="w-8 h-8 rounded-full bg-beo-golden flex items-center justify-center">
+                          <Crown className="h-4 w-4 text-white" />
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-beo-cream/50 flex items-center justify-center text-sm font-bold text-text-secondary">
+                          {team.placement ?? teamIndex + 1}
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="font-semibold text-foreground">
+                          {team.team_name}
+                        </h3>
+                        <p className="text-sm text-text-muted">
+                          {team.members.length} member{team.members.length !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-lg font-bold tabular-nums ${team.is_winner ? "text-beo-golden" : ""}`}>
+                        {formatNumber(team.total_points)}
+                      </p>
+                      <p className="text-xs text-text-muted">total points</p>
+                    </div>
+                  </div>
+
+                  {/* Team Members */}
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Player</TableHead>
+                        <TableHead className="w-24 text-right">Points</TableHead>
+                        <TableHead className="w-40 text-right hidden sm:table-cell">Answered</TableHead>
+                        {hasFinalBeopardy && (
+                          <TableHead className="w-24 text-center hidden md:table-cell">Final Beo</TableHead>
+                        )}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {sortedMembers.map((member) => {
+                        const accuracy = member.questions_seen > 0
+                          ? (member.questions_correct / member.questions_seen) * 100
+                          : 0;
+                        const isFinalBeopardyWinner = finalBeopardyWinnerId === member.player_id;
+
+                        return (
+                          <TableRow key={member.id} isClickable>
+                            <TableCell>
+                              <Link
+                                href={ROUTES.player(member.players.slug)}
+                                className="group flex items-center gap-3"
+                              >
+                                <Avatar
+                                  src={member.players.image_url}
+                                  alt={member.players.name}
+                                  size="sm"
+                                />
+                                <span className="font-medium text-foreground group-hover:text-beo-terracotta transition-colors">
+                                  {member.players.name}
+                                </span>
+                                <ExternalLink className="h-3 w-3 text-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </Link>
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums">
+                              <span className="font-mono font-medium">
+                                {formatNumber(member.points_scored)}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right hidden sm:table-cell">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <span className="font-medium tabular-nums">
+                                  {member.questions_correct}/{member.questions_seen}
+                                </span>
+                                <span className="text-text-muted text-xs tabular-nums">
+                                  ({formatPercentage(accuracy, 0)})
+                                </span>
+                              </div>
+                            </TableCell>
+                            {hasFinalBeopardy && (
+                              <TableCell className="text-center hidden md:table-cell">
+                                {isFinalBeopardyWinner ? (
+                                  <div className="flex items-center justify-center">
+                                    <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-beo-golden/20 text-beo-golden">
+                                      <Sparkles className="h-3.5 w-3.5" />
+                                      <span className="text-xs font-semibold">Winner</span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-text-muted">—</span>
+                                )}
+                              </TableCell>
+                            )}
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Solo episode display (original)
   // Sort by placement (winner first), then by points
   const sortedResults = [...results].sort((a, b) => {
     if (a.is_winner && !b.is_winner) return -1;
@@ -46,8 +216,6 @@ export function EpisodeResults({ results, finalBeopardyWinnerId }: EpisodeResult
     if (a.placement && b.placement) return a.placement - b.placement;
     return b.points_scored - a.points_scored;
   });
-
-  const hasFinalBeopardy = !!finalBeopardyWinnerId;
 
   return (
     <Card variant="outlined">
@@ -61,7 +229,7 @@ export function EpisodeResults({ results, finalBeopardyWinnerId }: EpisodeResult
               <TableHead className="w-14 text-center">Place</TableHead>
               <TableHead>Player</TableHead>
               <TableHead className="w-24 text-right">Points</TableHead>
-              <TableHead className="w-40 text-right hidden sm:table-cell">Correct</TableHead>
+              <TableHead className="w-40 text-right hidden sm:table-cell">Answered</TableHead>
               {hasFinalBeopardy && (
                 <TableHead className="w-24 text-center hidden md:table-cell">Final Beo</TableHead>
               )}

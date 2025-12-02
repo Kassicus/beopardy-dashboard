@@ -28,6 +28,7 @@ export type Database = {
           points_scored: number
           questions_correct: number
           questions_seen: number
+          team_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -43,6 +44,7 @@ export type Database = {
           points_scored?: number
           questions_correct?: number
           questions_seen?: number
+          team_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -58,6 +60,7 @@ export type Database = {
           points_scored?: number
           questions_correct?: number
           questions_seen?: number
+          team_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -89,6 +92,64 @@ export type Database = {
             referencedRelation: "players"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "episode_appearances_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "episode_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      episode_teams: {
+        Row: {
+          created_at: string | null
+          episode_id: string
+          id: string
+          is_winner: boolean
+          placement: number | null
+          team_color: string | null
+          team_name: string
+          total_points: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          episode_id: string
+          id?: string
+          is_winner?: boolean
+          placement?: number | null
+          team_color?: string | null
+          team_name: string
+          total_points?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          episode_id?: string
+          id?: string
+          is_winner?: boolean
+          placement?: number | null
+          team_color?: string | null
+          team_name?: string
+          total_points?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "episode_teams_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "episode_teams_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episode_summary"
+            referencedColumns: ["id"]
+          },
         ]
       }
       episodes: {
@@ -97,6 +158,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           episode_number: number
+          episode_type: "solo" | "team"
           final_beopardy_winner_id: string | null
           id: string
           season: number | null
@@ -110,6 +172,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           episode_number: number
+          episode_type?: "solo" | "team"
           final_beopardy_winner_id?: string | null
           id?: string
           season?: number | null
@@ -123,6 +186,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           episode_number?: number
+          episode_type?: "solo" | "team"
           final_beopardy_winner_id?: string | null
           id?: string
           season?: number | null
@@ -174,14 +238,18 @@ export type Database = {
         Row: {
           air_date: string | null
           episode_number: number | null
+          episode_type: "solo" | "team" | null
           highest_score: number | null
           id: string | null
           participant_count: number | null
           season: number | null
+          team_count: number | null
           thumbnail_url: string | null
           title: string | null
           winner_id: string | null
           winner_name: string | null
+          winning_team_id: string | null
+          winning_team_name: string | null
           youtube_url: string | null
         }
         Relationships: []
@@ -198,6 +266,12 @@ export type Database = {
           lowest_score: number | null
           name: string | null
           slug: string | null
+          solo_appearances: number | null
+          solo_win_percentage: number | null
+          solo_wins: number | null
+          team_appearances: number | null
+          team_win_percentage: number | null
+          team_wins: number | null
           total_appearances: number | null
           total_points: number | null
           total_questions_correct: number | null

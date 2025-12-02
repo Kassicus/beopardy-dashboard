@@ -36,6 +36,13 @@ export default async function EpisodeResultsPage({ params }: ResultsPageProps) {
     .eq("episode_id", id)
     .order("placement");
 
+  // Fetch existing teams for team episodes
+  const { data: existingTeams } = await supabase
+    .from("episode_teams")
+    .select("*")
+    .eq("episode_id", id)
+    .order("placement");
+
   return (
     <div className="py-8">
       <Container size="lg">
@@ -47,6 +54,7 @@ export default async function EpisodeResultsPage({ params }: ResultsPageProps) {
           episode={episode}
           players={players ?? []}
           existingResults={existingResults ?? []}
+          existingTeams={existingTeams ?? []}
         />
       </Container>
     </div>

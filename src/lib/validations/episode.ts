@@ -14,6 +14,7 @@ export const episodeSchema = z.object({
     .int("Must be a whole number")
     .positive("Must be a positive number"),
   air_date: z.string().min(1, "Air date is required"),
+  episode_type: z.enum(["solo", "team"]).default("solo"),
   youtube_url: z
     .string()
     .url("Must be a valid URL")

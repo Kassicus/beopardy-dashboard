@@ -139,7 +139,7 @@ export function PlayerComparison({ players, appearances }: PlayerComparisonProps
         icon: <BarChart3 className="h-4 w-4" />,
       },
       {
-        label: "Correct %",
+        label: "Answered %",
         player1Value: formatPercentage(player1.accuracy_percentage),
         player2Value: formatPercentage(player2.accuracy_percentage),
         player1Raw: player1.accuracy_percentage ?? 0,

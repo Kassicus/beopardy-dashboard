@@ -85,9 +85,25 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
     .eq("episode_id", id)
     .order("points_scored", { ascending: false });
 
+  // Fetch teams for team episodes
+  const { data: teams } = episode.episode_type === "team"
+    ? await supabase
+        .from("episode_teams")
+        .select("*")
+        .eq("episode_id", id)
+        .order("placement")
+    : { data: null };
+
+  // Build teams with members for team episodes
+  const teamsWithMembers = teams?.map((team) => ({
+    ...team,
+    members: results?.filter((r) => r.team_id === team.id) ?? [],
+  })) ?? [];
+
   // Calculate episode stats
   const participantCount = results?.length ?? 0;
   const winner = results?.find((r) => r.is_winner);
+  const winningTeam = teamsWithMembers.find((t) => t.is_winner);
   const highestScore = results?.[0]?.points_scored ?? 0;
   const totalPoints = results?.reduce((sum, r) => sum + r.points_scored, 0) ?? 0;
   const avgAccuracy = participantCount > 0
@@ -136,11 +152,23 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Left side: Episode info */}
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
                     <Badge variant="rose">
                       Season {episode.season} Episode {episode.episode_number}
                     </Badge>
-                    {winner && (
+                    {episode.episode_type === "team" && (
+                      <Badge variant="cream" className="gap-1">
+                        <Users className="h-3 w-3" />
+                        Team Episode
+                      </Badge>
+                    )}
+                    {episode.episode_type === "team" && winningTeam && (
+                      <Badge variant="golden" className="gap-1">
+                        <Trophy className="h-3 w-3" />
+                        {winningTeam.team_name} wins!
+                      </Badge>
+                    )}
+                    {episode.episode_type === "solo" && winner && (
                       <Badge variant="golden" className="gap-1">
                         <Trophy className="h-3 w-3" />
                         {winner.players.name} wins!
@@ -219,7 +247,7 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
                 accentColor="rose"
               />
               <StatCard
-                label="Avg Correct"
+                label="Avg Answered"
                 value={`${avgAccuracy.toFixed(0)}%`}
                 icon={<Trophy className="h-5 w-5" />}
                 accentColor="cream"
@@ -231,6 +259,8 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
           <EpisodeResults
             results={results ?? []}
             finalBeopardyWinnerId={episode.final_beopardy_winner_id}
+            episodeType={episode.episode_type}
+            teams={teamsWithMembers}
           />
         </Container>
       </div>

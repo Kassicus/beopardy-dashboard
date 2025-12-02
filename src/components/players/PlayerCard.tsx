@@ -46,7 +46,7 @@ export function PlayerCard({ player }: PlayerCardProps) {
                   <div className="flex items-center gap-4 text-sm text-text-muted">
                     <span className="flex items-center gap-1">
                       <Target className="h-3.5 w-3.5" />
-                      {formatPercentage(player.accuracy_percentage)} correct
+                      {formatPercentage(player.accuracy_percentage)} answered
                     </span>
                   </div>
                 </div>

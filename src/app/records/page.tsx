@@ -256,10 +256,10 @@ export default async function RecordsPage() {
             </RecordCard>
           )}
 
-          {/* Best Single Game Correct % */}
+          {/* Best Single Game Answered % */}
           {bestSingleGameAccuracy && (
             <RecordCard
-              title="Best Single Game Correct %"
+              title="Best Single Game Answered %"
               icon={<Target className="h-5 w-5 text-beo-rose" />}
               accentColor="bg-beo-rose/20"
             >
@@ -275,7 +275,7 @@ export default async function RecordsPage() {
                   </p>
                   <p className="font-medium text-foreground">{bestSingleGameAccuracy.players.name}</p>
                   <p className="text-sm text-text-muted">
-                    {bestSingleGameAccuracy.questions_correct}/{bestSingleGameAccuracy.questions_seen} correct
+                    {bestSingleGameAccuracy.questions_correct}/{bestSingleGameAccuracy.questions_seen} answered
                   </p>
                 </div>
               </Link>

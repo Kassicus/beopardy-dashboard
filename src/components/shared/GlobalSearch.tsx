@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Search, X, Users, Tv, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -24,21 +25,23 @@ export function GlobalSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Close on click outside
+  // Track mounting for portal
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    setMounted(true);
   }, []);
+
+  // Auto-focus input when modal opens
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
 
   // Keyboard shortcut to open search
   useEffect(() => {
@@ -68,17 +71,38 @@ export function GlobalSearch() {
     const supabase = createClient();
 
     try {
-      const [playersResult, episodesResult] = await Promise.all([
+      // Search players and episodes with contestant names
+      const [playersResult, episodesByTitleResult, episodesByContestantResult] = await Promise.all([
+        // Search players by name
         supabase
           .from("player_career_stats")
           .select("id, name, slug, image_url, total_wins, total_appearances")
           .ilike("name", `%${searchQuery}%`)
           .limit(5),
+        // Search episodes by title
         supabase
           .from("episode_summary")
           .select("id, title, season, episode_number, air_date, winner_name")
-          .or(`title.ilike.%${searchQuery}%,winner_name.ilike.%${searchQuery}%`)
+          .ilike("title", `%${searchQuery}%`)
           .limit(5),
+        // Search episodes by contestant name (including non-winners)
+        supabase
+          .from("episode_appearances")
+          .select(`
+            episode_id,
+            episodes!inner (
+              id,
+              title,
+              season,
+              episode_number,
+              air_date
+            ),
+            players!inner (
+              name
+            )
+          `)
+          .ilike("players.name", `%${searchQuery}%`)
+          .limit(10),
       ]);
 
       const searchResults: SearchResult[] = [];
@@ -97,16 +121,39 @@ export function GlobalSearch() {
         });
       }
 
-      // Add episode results
-      if (episodesResult.data) {
-        episodesResult.data.forEach((episode) => {
-          searchResults.push({
-            type: "episode",
-            id: episode.id ?? "",
-            title: episode.title ?? "",
-            subtitle: `S${episode.season} E${episode.episode_number} • ${formatDate(episode.air_date ?? "")}`,
-            href: ROUTES.episode(episode.id ?? ""),
-          });
+      // Collect unique episode IDs to avoid duplicates
+      const addedEpisodeIds = new Set<string>();
+
+      // Add episodes found by title
+      if (episodesByTitleResult.data) {
+        episodesByTitleResult.data.forEach((episode) => {
+          if (episode.id && !addedEpisodeIds.has(episode.id)) {
+            addedEpisodeIds.add(episode.id);
+            searchResults.push({
+              type: "episode",
+              id: episode.id,
+              title: episode.title ?? "",
+              subtitle: `S${episode.season} E${episode.episode_number} • ${formatDate(episode.air_date ?? "")}`,
+              href: ROUTES.episode(episode.id),
+            });
+          }
+        });
+      }
+
+      // Add episodes found by contestant name
+      if (episodesByContestantResult.data) {
+        episodesByContestantResult.data.forEach((appearance) => {
+          const episode = appearance.episodes as { id: string; title: string; season: number; episode_number: number; air_date: string } | null;
+          if (episode && !addedEpisodeIds.has(episode.id)) {
+            addedEpisodeIds.add(episode.id);
+            searchResults.push({
+              type: "episode",
+              id: episode.id ?? "",
+              title: episode.title ?? "",
+              subtitle: `S${episode.season} E${episode.episode_number} • ${formatDate(episode.air_date ?? "")}`,
+              href: ROUTES.episode(episode.id ?? ""),
+            });
+          }
         });
       }
 
@@ -154,10 +201,7 @@ export function GlobalSearch() {
     <div ref={containerRef} className="relative">
       {/* Search Button (Mobile) */}
       <button
-        onClick={() => {
-          setIsOpen(true);
-          setTimeout(() => inputRef.current?.focus(), 100);
-        }}
+        onClick={() => setIsOpen(true)}
         className="md:hidden p-2 text-text-secondary hover:text-foreground transition-colors"
         aria-label="Search"
       >
@@ -167,10 +211,7 @@ export function GlobalSearch() {
       {/* Search Input (Desktop) */}
       <div className="hidden md:block relative">
         <button
-          onClick={() => {
-            setIsOpen(true);
-            setTimeout(() => inputRef.current?.focus(), 100);
-          }}
+          onClick={() => setIsOpen(true)}
           className="flex items-center gap-2 px-3 py-1.5 text-sm text-text-muted bg-surface border border-border rounded-lg hover:border-beo-terracotta/50 transition-colors w-64"
         >
           <Search className="h-4 w-4" />
@@ -181,10 +222,17 @@ export function GlobalSearch() {
         </button>
       </div>
 
-      {/* Search Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] px-4 bg-black/50">
-          <div className="w-full max-w-lg bg-surface rounded-xl shadow-2xl border border-border overflow-hidden">
+      {/* Search Modal - rendered via portal to fix backdrop-blur */}
+      {mounted && isOpen && createPortal(
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] px-4 bg-black/20 backdrop-blur-sm"
+          onClick={() => setIsOpen(false)}
+        >
+          <div
+            ref={modalRef}
+            className="w-full max-w-lg bg-surface rounded-xl shadow-2xl border border-border overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Search Input */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
               <Search className="h-5 w-5 text-text-muted shrink-0" />
@@ -282,7 +330,8 @@ export function GlobalSearch() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

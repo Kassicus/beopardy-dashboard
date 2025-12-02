@@ -40,9 +40,11 @@ export function PerformanceTrend({ appearances, playerName }: PerformanceTrendPr
         fullDate: formatDate(appearance.episode_date),
         title: appearance.episode_title,
         points: appearance.points_scored,
-        accuracy: appearance.questions_seen > 0
+        correctPct: appearance.questions_seen > 0
           ? Math.round((appearance.questions_correct / appearance.questions_seen) * 100)
           : 0,
+        questionsCorrect: appearance.questions_correct,
+        questionsSeen: appearance.questions_seen,
         isWinner: appearance.is_winner,
       }));
   }, [appearances]);
@@ -103,8 +105,8 @@ export function PerformanceTrend({ appearances, playerName }: PerformanceTrendPr
                             {data.isWinner && " 🏆"}
                           </p>
                           <p>
-                            <span className="text-beo-rose font-medium">Accuracy:</span>{" "}
-                            {data.accuracy}%
+                            <span className="text-beo-rose font-medium">Answered:</span>{" "}
+                            {data.questionsCorrect}/{data.questionsSeen} ({data.correctPct}%)
                           </p>
                         </div>
                       </div>
@@ -165,8 +167,8 @@ export function PerformanceTrend({ appearances, playerName }: PerformanceTrendPr
               <Line
                 yAxisId="right"
                 type="monotone"
-                dataKey="accuracy"
-                name="Accuracy %"
+                dataKey="correctPct"
+                name="Answered %"
                 stroke="#C57F87"
                 strokeWidth={2}
                 dot={{ r: 3, fill: "#C57F87" }}

@@ -11,6 +11,7 @@ import { ROUTES } from "@/lib/constants";
 import { getYouTubeThumbnail } from "@/lib/utils/youtube";
 import toast from "react-hot-toast";
 import type { Tables } from "@/types/database";
+import { Users, User } from "lucide-react";
 
 interface EpisodeFormProps {
   episode?: Tables<"episodes">;
@@ -27,6 +28,7 @@ export function EpisodeForm({ episode, mode }: EpisodeFormProps) {
     episode_number: episode?.episode_number ?? 1,
     season: episode?.season ?? 1,
     air_date: episode?.air_date ?? "",
+    episode_type: episode?.episode_type ?? "solo",
     youtube_url: episode?.youtube_url ?? "",
     thumbnail_url: episode?.thumbnail_url ?? "",
     description: episode?.description ?? "",
@@ -92,6 +94,7 @@ export function EpisodeForm({ episode, mode }: EpisodeFormProps) {
         episode_number: formData.episode_number,
         season: formData.season,
         air_date: formData.air_date,
+        episode_type: formData.episode_type,
         youtube_url: formData.youtube_url || null,
         thumbnail_url: formData.thumbnail_url || null,
         description: formData.description || null,
@@ -174,6 +177,71 @@ export function EpisodeForm({ episode, mode }: EpisodeFormProps) {
             required
             disabled={isLoading}
           />
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Episode Type
+            </label>
+            <div className="flex gap-4">
+              <label
+                className={`
+                  flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition-all
+                  ${formData.episode_type === "solo"
+                    ? "border-beo-terracotta bg-beo-terracotta/10 ring-2 ring-beo-terracotta/20"
+                    : "border-border hover:border-beo-terracotta/50"
+                  }
+                  ${isLoading ? "opacity-50 cursor-not-allowed" : ""}
+                `}
+              >
+                <input
+                  type="radio"
+                  name="episode_type"
+                  value="solo"
+                  checked={formData.episode_type === "solo"}
+                  onChange={(e) => handleChange("episode_type", e.target.value)}
+                  disabled={isLoading}
+                  className="sr-only"
+                />
+                <User className={`h-5 w-5 ${formData.episode_type === "solo" ? "text-beo-terracotta" : "text-text-muted"}`} />
+                <div>
+                  <p className={`font-medium ${formData.episode_type === "solo" ? "text-foreground" : "text-text-secondary"}`}>
+                    Solo
+                  </p>
+                  <p className="text-xs text-text-muted">Individual competition</p>
+                </div>
+              </label>
+              <label
+                className={`
+                  flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition-all
+                  ${formData.episode_type === "team"
+                    ? "border-beo-rose bg-beo-rose/10 ring-2 ring-beo-rose/20"
+                    : "border-border hover:border-beo-rose/50"
+                  }
+                  ${isLoading ? "opacity-50 cursor-not-allowed" : ""}
+                `}
+              >
+                <input
+                  type="radio"
+                  name="episode_type"
+                  value="team"
+                  checked={formData.episode_type === "team"}
+                  onChange={(e) => handleChange("episode_type", e.target.value)}
+                  disabled={isLoading}
+                  className="sr-only"
+                />
+                <Users className={`h-5 w-5 ${formData.episode_type === "team" ? "text-beo-rose" : "text-text-muted"}`} />
+                <div>
+                  <p className={`font-medium ${formData.episode_type === "team" ? "text-foreground" : "text-text-secondary"}`}>
+                    Team
+                  </p>
+                  <p className="text-xs text-text-muted">Team competition</p>
+                </div>
+              </label>
+            </div>
+            {errors.episode_type && (
+              <p className="mt-1 text-sm text-red-500">{errors.episode_type}</p>
+            )}
+          </div>
 
           <Input
             label="YouTube URL"
