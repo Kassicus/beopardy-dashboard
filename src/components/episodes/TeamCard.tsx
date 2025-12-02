@@ -328,14 +328,14 @@ export function TeamCard({
             />
             <Select
               label="Result"
-              value={team.final_correct === null ? "" : team.final_correct ? "correct" : "incorrect"}
+              value={team.final_correct === null ? "" : team.final_correct ? "add" : "lose"}
               onChange={(e) =>
-                updateTeam("final_correct", e.target.value === "" ? null : e.target.value === "correct")
+                updateTeam("final_correct", e.target.value === "" ? null : e.target.value === "add")
               }
               options={[
                 { value: "", label: "Did not participate" },
-                { value: "correct", label: "Correct" },
-                { value: "incorrect", label: "Incorrect" },
+                { value: "add", label: "Add wager to score" },
+                { value: "lose", label: "Lose wager from score" },
               ]}
               disabled={disabled}
             />

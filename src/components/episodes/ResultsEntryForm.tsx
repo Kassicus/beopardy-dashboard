@@ -346,18 +346,25 @@ export function ResultsEntryForm({
         if (insertAppearancesError) throw insertAppearancesError;
       } else {
         // Solo mode: Insert appearances directly
-        const resultsToInsert = participants.map((p) => ({
-          episode_id: episode.id,
-          player_id: p.player_id,
-          team_id: null,
-          questions_seen: p.questions_seen,
-          questions_correct: p.questions_correct,
-          points_scored: p.points_scored,
-          is_winner: p.is_winner,
-          placement: p.placement,
-          final_wager: p.final_wager,
-          final_correct: p.final_correct,
-        }));
+        const resultsToInsert = participants.map((p) => {
+          // Calculate Final Beopardy points adjustment
+          let finalBeopardyPoints = 0;
+          if (p.final_wager != null && p.final_correct !== null) {
+            finalBeopardyPoints = p.final_correct ? p.final_wager : -p.final_wager;
+          }
+          return {
+            episode_id: episode.id,
+            player_id: p.player_id,
+            team_id: null,
+            questions_seen: p.questions_seen,
+            questions_correct: p.questions_correct,
+            points_scored: p.points_scored + finalBeopardyPoints,
+            is_winner: p.is_winner,
+            placement: p.placement,
+            final_wager: p.final_wager,
+            final_correct: p.final_correct,
+          };
+        });
 
         const { error: insertError } = await supabase
           .from("episode_appearances")
@@ -626,18 +633,18 @@ export function ResultsEntryForm({
                     />
                     <Select
                       label="Result"
-                      value={participant.final_correct === null ? "" : participant.final_correct ? "correct" : "incorrect"}
+                      value={participant.final_correct === null ? "" : participant.final_correct ? "add" : "lose"}
                       onChange={(e) =>
                         updateParticipant(
                           participant.id,
                           "final_correct",
-                          e.target.value === "" ? null : e.target.value === "correct"
+                          e.target.value === "" ? null : e.target.value === "add"
                         )
                       }
                       options={[
                         { value: "", label: "Did not participate" },
-                        { value: "correct", label: "Correct" },
-                        { value: "incorrect", label: "Incorrect" },
+                        { value: "add", label: "Add wager to score" },
+                        { value: "lose", label: "Lose wager from score" },
                       ]}
                       disabled={isLoading}
                     />
