@@ -41,9 +41,9 @@ export function PlayerStats({ stats }: PlayerStatsProps) {
         accentColor="rose"
       />
       <StatCard
-        label="Accuracy"
-        value={formatPercentage(stats.accuracy_percentage)}
-        subValue={`${stats.total_questions_correct ?? 0}/${stats.total_questions_seen ?? 0} questions`}
+        label="Correct"
+        value={`${stats.total_questions_correct ?? 0}/${stats.total_questions_seen ?? 0}`}
+        subValue={`${formatPercentage(stats.accuracy_percentage)} correct rate`}
         icon={<Target className="h-5 w-5" />}
         accentColor="cream"
       />

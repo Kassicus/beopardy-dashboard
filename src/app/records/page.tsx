@@ -256,10 +256,10 @@ export default async function RecordsPage() {
             </RecordCard>
           )}
 
-          {/* Best Single Game Accuracy */}
+          {/* Best Single Game Correct % */}
           {bestSingleGameAccuracy && (
             <RecordCard
-              title="Best Single Game Accuracy"
+              title="Best Single Game Correct %"
               icon={<Target className="h-5 w-5 text-beo-rose" />}
               accentColor="bg-beo-rose/20"
             >

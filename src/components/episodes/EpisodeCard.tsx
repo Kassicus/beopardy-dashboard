@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ROUTES } from "@/lib/constants";
 import { formatDate, formatNumber } from "@/lib/utils/formatters";
+import { getYouTubeThumbnail } from "@/lib/utils/youtube";
 import type { Tables } from "@/types/database";
 
 interface EpisodeCardProps {
@@ -14,6 +15,10 @@ interface EpisodeCardProps {
 export function EpisodeCard({ episode }: EpisodeCardProps) {
   const hasResults = episode.winner_name !== null;
 
+  // Use stored thumbnail, or generate from YouTube URL as fallback
+  const thumbnailUrl = episode.thumbnail_url ||
+    (episode.youtube_url ? getYouTubeThumbnail(episode.youtube_url) : null);
+
   return (
     <Link href={ROUTES.episode(episode.id!)}>
       <Card
@@ -21,13 +26,14 @@ export function EpisodeCard({ episode }: EpisodeCardProps) {
         className="h-full hover:border-beo-rose/50 hover:shadow-md transition-all duration-200 overflow-hidden"
       >
         {/* Thumbnail */}
-        {episode.thumbnail_url ? (
+        {thumbnailUrl ? (
           <div className="relative aspect-video bg-beo-cream/30">
             <Image
-              src={episode.thumbnail_url}
+              src={thumbnailUrl}
               alt={episode.title ?? "Episode thumbnail"}
               fill
               className="object-cover"
+              unoptimized={thumbnailUrl.includes("img.youtube.com")}
             />
             {episode.youtube_url && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">

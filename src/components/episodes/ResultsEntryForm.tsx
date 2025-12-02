@@ -38,6 +38,9 @@ export function ResultsEntryForm({
 }: ResultsEntryFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [finalBeopardyWinnerId, setFinalBeopardyWinnerId] = useState<string>(
+    episode.final_beopardy_winner_id ?? ""
+  );
 
   const initialParticipants: ParticipantResult[] = existingResults.length > 0
     ? existingResults.map((r) => ({
@@ -174,6 +177,16 @@ export function ResultsEntryForm({
         .insert(resultsToInsert);
 
       if (insertError) throw insertError;
+
+      // Update episode with Final Beopardy winner
+      const { error: updateEpisodeError } = await supabase
+        .from("episodes")
+        .update({
+          final_beopardy_winner_id: finalBeopardyWinnerId || null
+        })
+        .eq("id", episode.id);
+
+      if (updateEpisodeError) throw updateEpisodeError;
 
       toast.success("Results saved successfully!");
       router.push(ROUTES.admin.episodes);
@@ -350,6 +363,35 @@ export function ResultsEntryForm({
           </Card>
         ))}
       </div>
+
+      {/* Final Beopardy Winner */}
+      <Card variant="outlined" className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-beo-golden" />
+            Final Beopardy
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select
+            label="Final Beopardy Winner"
+            value={finalBeopardyWinnerId}
+            onChange={(e) => setFinalBeopardyWinnerId(e.target.value)}
+            options={[
+              { value: "", label: "No Final Beopardy / Not Applicable" },
+              ...participants
+                .filter((p) => p.player_id)
+                .map((p) => ({
+                  value: p.player_id,
+                  label: getPlayerName(p.player_id),
+                })),
+            ]}
+          />
+          <p className="mt-1.5 text-sm text-text-muted">
+            Select the player who won Final Beopardy, or leave blank if there was no Final Beopardy round.
+          </p>
+        </CardContent>
+      </Card>
 
       <div className="flex gap-3">
         <Button type="submit" isLoading={isLoading}>

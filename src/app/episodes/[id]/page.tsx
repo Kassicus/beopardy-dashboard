@@ -12,6 +12,7 @@ import { StructuredData, generateEpisodeSchema, generateBreadcrumbSchema } from 
 import { ROUTES } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatNumber } from "@/lib/utils/formatters";
+import { getYouTubeThumbnail } from "@/lib/utils/youtube";
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://beopardy-stats.vercel.app";
 
@@ -181,11 +182,11 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
                 </div>
 
                 {/* Right side: Thumbnail */}
-                {episode.thumbnail_url && (
+                {(episode.thumbnail_url || episode.youtube_url) && (
                   <div className="lg:w-80 shrink-0">
                     <div className="relative aspect-video rounded-lg overflow-hidden bg-beo-cream/30">
                       <img
-                        src={episode.thumbnail_url}
+                        src={episode.thumbnail_url || getYouTubeThumbnail(episode.youtube_url!) || ""}
                         alt={episode.title}
                         className="object-cover w-full h-full"
                       />
@@ -218,7 +219,7 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
                 accentColor="rose"
               />
               <StatCard
-                label="Avg Accuracy"
+                label="Avg Correct"
                 value={`${avgAccuracy.toFixed(0)}%`}
                 icon={<Trophy className="h-5 w-5" />}
                 accentColor="cream"
@@ -227,7 +228,10 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
           )}
 
           {/* Results Table */}
-          <EpisodeResults results={results ?? []} />
+          <EpisodeResults
+            results={results ?? []}
+            finalBeopardyWinnerId={episode.final_beopardy_winner_id}
+          />
         </Container>
       </div>
     </>

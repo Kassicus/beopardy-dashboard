@@ -97,6 +97,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           episode_number: number
+          final_beopardy_winner_id: string | null
           id: string
           season: number | null
           thumbnail_url: string | null
@@ -109,6 +110,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           episode_number: number
+          final_beopardy_winner_id?: string | null
           id?: string
           season?: number | null
           thumbnail_url?: string | null
@@ -121,6 +123,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           episode_number?: number
+          final_beopardy_winner_id?: string | null
           id?: string
           season?: number | null
           thumbnail_url?: string | null
@@ -128,7 +131,15 @@ export type Database = {
           updated_at?: string | null
           youtube_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "episodes_final_beopardy_winner_id_fkey"
+            columns: ["final_beopardy_winner_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       players: {
         Row: {

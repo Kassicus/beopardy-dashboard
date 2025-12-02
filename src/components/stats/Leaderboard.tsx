@@ -68,9 +68,9 @@ const leaderboardTabs: LeaderboardTab[] = [
   },
   {
     id: "accuracy",
-    label: "Accuracy",
+    label: "Correct %",
     icon: <Target className="h-4 w-4" />,
-    description: `Best question accuracy (min. ${LEADERBOARD_MIN_APPEARANCES} appearances)`,
+    description: `Highest correct answer rate (min. ${LEADERBOARD_MIN_APPEARANCES} appearances)`,
     minAppearances: LEADERBOARD_MIN_APPEARANCES,
     getValue: (p) => p.accuracy_percentage,
     formatValue: (v) => formatPercentage(v),

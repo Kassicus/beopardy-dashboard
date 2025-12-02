@@ -56,7 +56,7 @@ export function PlayerAppearanceHistory({ appearances }: PlayerAppearanceHistory
               <TableHead className="hidden sm:table-cell">Date</TableHead>
               <TableHead className="text-center">Place</TableHead>
               <TableHead className="text-right">Points</TableHead>
-              <TableHead className="text-right hidden md:table-cell">Accuracy</TableHead>
+              <TableHead className="text-right hidden md:table-cell">Correct</TableHead>
               <TableHead className="text-center hidden lg:table-cell">Final</TableHead>
             </TableRow>
           </TableHeader>
