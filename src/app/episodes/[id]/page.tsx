@@ -106,14 +106,7 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
   const winningTeam = teamsWithMembers.find((t) => t.is_winner);
   const highestScore = results?.[0]?.points_scored ?? 0;
   const totalPoints = results?.reduce((sum, r) => sum + r.points_scored, 0) ?? 0;
-  const avgAccuracy = participantCount > 0
-    ? (results?.reduce((sum, r) => {
-        if (r.questions_seen > 0) {
-          return sum + (r.questions_correct / r.questions_seen);
-        }
-        return sum;
-      }, 0) ?? 0) / participantCount * 100
-    : 0;
+  const totalAnswered = results?.reduce((sum, r) => sum + r.questions_correct, 0) ?? 0;
 
   // Structured data for SEO
   const episodeSchema = generateEpisodeSchema({
@@ -247,8 +240,8 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
                 accentColor="rose"
               />
               <StatCard
-                label="Avg Answered"
-                value={`${avgAccuracy.toFixed(0)}%`}
+                label="Total Answered"
+                value={totalAnswered}
                 icon={<Trophy className="h-5 w-5" />}
                 accentColor="cream"
               />
