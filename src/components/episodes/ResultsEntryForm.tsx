@@ -49,17 +49,27 @@ export function ResultsEntryForm({
 
   // Solo mode state
   const initialParticipants: ParticipantResult[] = existingResults.length > 0 && !isTeamEpisode
-    ? existingResults.map((r) => ({
-        id: r.id,
-        player_id: r.player_id,
-        questions_seen: r.questions_seen,
-        questions_correct: r.questions_correct,
-        points_scored: r.points_scored,
-        is_winner: r.is_winner,
-        placement: r.placement,
-        final_wager: r.final_wager,
-        final_correct: r.final_correct,
-      }))
+    ? existingResults.map((r) => {
+        // Reverse Final Beopardy adjustment to show pre-FB score
+        // (since we'll re-apply it when saving)
+        let preFBPoints = r.points_scored;
+        if (r.final_wager != null && r.final_correct !== null) {
+          preFBPoints = r.final_correct
+            ? r.points_scored - r.final_wager  // Was added, so subtract
+            : r.points_scored + r.final_wager; // Was subtracted, so add back
+        }
+        return {
+          id: r.id,
+          player_id: r.player_id,
+          questions_seen: r.questions_seen,
+          questions_correct: r.questions_correct,
+          points_scored: preFBPoints,
+          is_winner: r.is_winner,
+          placement: r.placement,
+          final_wager: r.final_wager,
+          final_correct: r.final_correct,
+        };
+      })
     : [createEmptyParticipant()];
 
   const [participants, setParticipants] = useState<ParticipantResult[]>(initialParticipants);
