@@ -128,6 +128,23 @@ export function EpisodeResults({
                     </div>
                   </div>
 
+                  {/* Team Final Beopardy */}
+                  {team.final_correct !== null && (
+                    <div className="flex items-center justify-between px-4 py-2 bg-surface/50 border-t border-border">
+                      <span className="text-sm font-medium text-text-secondary">Final Beopardy</span>
+                      <div className="flex items-center gap-3">
+                        <Badge variant={team.final_correct ? "success" : "error"}>
+                          {team.final_correct ? "Correct" : "Wrong"}
+                        </Badge>
+                        {team.final_wager != null && team.final_wager > 0 && (
+                          <span className={`text-sm font-bold ${team.final_correct ? "text-green-600" : "text-red-600"}`}>
+                            {team.final_correct ? "+" : "-"}{formatNumber(team.final_wager)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Team Members */}
                   <Table>
                     <TableHeader>
@@ -135,9 +152,6 @@ export function EpisodeResults({
                         <TableHead>Player</TableHead>
                         <TableHead className="w-24 text-right">Points</TableHead>
                         <TableHead className="w-40 text-right hidden sm:table-cell">Answered</TableHead>
-                        {hasFinalBeopardy && (
-                          <TableHead className="w-24 text-center hidden md:table-cell">Final Beo</TableHead>
-                        )}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -145,7 +159,6 @@ export function EpisodeResults({
                         const accuracy = member.questions_seen > 0
                           ? (member.questions_correct / member.questions_seen) * 100
                           : 0;
-                        const isFinalBeopardyWinner = finalBeopardyWinnerId === member.player_id;
 
                         return (
                           <TableRow key={member.id} isClickable>
@@ -180,20 +193,6 @@ export function EpisodeResults({
                                 </span>
                               </div>
                             </TableCell>
-                            {hasFinalBeopardy && (
-                              <TableCell className="text-center hidden md:table-cell">
-                                {isFinalBeopardyWinner ? (
-                                  <div className="flex items-center justify-center">
-                                    <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-beo-golden/20 text-beo-golden">
-                                      <Sparkles className="h-3.5 w-3.5" />
-                                      <span className="text-xs font-semibold">Winner</span>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <span className="text-text-muted">—</span>
-                                )}
-                              </TableCell>
-                            )}
                           </TableRow>
                         );
                       })}
@@ -297,12 +296,24 @@ export function EpisodeResults({
                   </TableCell>
                   {hasFinalBeopardy && (
                     <TableCell className="text-center hidden md:table-cell">
-                      {isFinalBeopardyWinner ? (
-                        <div className="flex items-center justify-center">
-                          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-beo-golden/20 text-beo-golden">
-                            <Sparkles className="h-3.5 w-3.5" />
-                            <span className="text-xs font-semibold">Winner</span>
-                          </div>
+                      {result.final_correct !== null ? (
+                        <div className="flex flex-col items-center gap-0.5">
+                          {isFinalBeopardyWinner && (
+                            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-beo-golden/20 text-beo-golden">
+                              <Sparkles className="h-3.5 w-3.5" />
+                              <span className="text-xs font-semibold">Winner</span>
+                            </div>
+                          )}
+                          {!isFinalBeopardyWinner && (
+                            <Badge variant={result.final_correct ? "success" : "error"} className="text-xs">
+                              {result.final_correct ? "Correct" : "Wrong"}
+                            </Badge>
+                          )}
+                          {result.final_wager != null && result.final_wager > 0 && (
+                            <span className={`text-xs font-medium ${result.final_correct ? "text-green-600" : "text-red-600"}`}>
+                              {result.final_correct ? "+" : "-"}{result.final_wager}
+                            </span>
+                          )}
                         </div>
                       ) : (
                         <span className="text-text-muted">—</span>

@@ -72,6 +72,8 @@ export function ResultsEntryForm({
         team_color: t.team_color ?? "",
         is_winner: t.is_winner,
         placement: t.placement,
+        final_wager: t.final_wager,
+        final_correct: t.final_correct,
         members: existingResults
           .filter((r) => r.team_id === t.id)
           .map((r) => ({
@@ -80,6 +82,8 @@ export function ResultsEntryForm({
             questions_seen: r.questions_seen,
             questions_correct: r.questions_correct,
             points_scored: r.points_scored,
+            final_wager: r.final_wager,
+            final_correct: r.final_correct,
           })),
       }))
     : [createEmptyTeam(), createEmptyTeam()];
@@ -107,6 +111,8 @@ export function ResultsEntryForm({
       team_color: "",
       is_winner: false,
       placement: null,
+      final_wager: null,
+      final_correct: null,
       members: [createEmptyMember()],
     };
   }
@@ -118,6 +124,8 @@ export function ResultsEntryForm({
       questions_seen: 0,
       questions_correct: 0,
       points_scored: 0,
+      final_wager: null,
+      final_correct: null,
     };
   }
 
@@ -281,14 +289,24 @@ export function ResultsEntryForm({
 
       if (isTeamEpisode) {
         // Insert teams first
-        const teamsToInsert = teams.map((t) => ({
-          episode_id: episode.id,
-          team_name: t.team_name,
-          team_color: t.team_color || null,
-          is_winner: t.is_winner,
-          placement: t.placement,
-          total_points: t.members.reduce((sum, m) => sum + m.points_scored, 0),
-        }));
+        const teamsToInsert = teams.map((t) => {
+          const memberPoints = t.members.reduce((sum, m) => sum + m.points_scored, 0);
+          // Add or subtract Final Beopardy wager based on result
+          let finalBeopardyPoints = 0;
+          if (t.final_wager != null && t.final_correct !== null) {
+            finalBeopardyPoints = t.final_correct ? t.final_wager : -t.final_wager;
+          }
+          return {
+            episode_id: episode.id,
+            team_name: t.team_name,
+            team_color: t.team_color || null,
+            is_winner: t.is_winner,
+            placement: t.placement,
+            total_points: memberPoints + finalBeopardyPoints,
+            final_wager: t.final_wager,
+            final_correct: t.final_correct,
+          };
+        });
 
         const { data: insertedTeams, error: insertTeamsError } = await supabase
           .from("episode_teams")
@@ -316,8 +334,8 @@ export function ResultsEntryForm({
             points_scored: m.points_scored,
             is_winner: false, // For team episodes, is_winner is on the team, not individual
             placement: null,
-            final_wager: null,
-            final_correct: null,
+            final_wager: m.final_wager,
+            final_correct: m.final_correct,
           }))
         );
 
@@ -584,6 +602,45 @@ export function ResultsEntryForm({
                       />
                       <span className="text-sm font-medium">Winner</span>
                     </label>
+                  </div>
+                </div>
+
+                {/* Final Beopardy */}
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-sm font-medium text-text-secondary mb-3">Final Beopardy</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="Wager"
+                      type="number"
+                      value={participant.final_wager ?? ""}
+                      onChange={(e) =>
+                        updateParticipant(
+                          participant.id,
+                          "final_wager",
+                          e.target.value ? parseInt(e.target.value) : null
+                        )
+                      }
+                      min={0}
+                      disabled={isLoading}
+                      placeholder="0"
+                    />
+                    <Select
+                      label="Result"
+                      value={participant.final_correct === null ? "" : participant.final_correct ? "correct" : "incorrect"}
+                      onChange={(e) =>
+                        updateParticipant(
+                          participant.id,
+                          "final_correct",
+                          e.target.value === "" ? null : e.target.value === "correct"
+                        )
+                      }
+                      options={[
+                        { value: "", label: "Did not participate" },
+                        { value: "correct", label: "Correct" },
+                        { value: "incorrect", label: "Incorrect" },
+                      ]}
+                      disabled={isLoading}
+                    />
                   </div>
                 </div>
               </CardContent>

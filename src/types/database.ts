@@ -105,6 +105,8 @@ export type Database = {
         Row: {
           created_at: string | null
           episode_id: string
+          final_correct: boolean | null
+          final_wager: number | null
           id: string
           is_winner: boolean
           placement: number | null
@@ -116,6 +118,8 @@ export type Database = {
         Insert: {
           created_at?: string | null
           episode_id: string
+          final_correct?: boolean | null
+          final_wager?: number | null
           id?: string
           is_winner?: boolean
           placement?: number | null
@@ -127,6 +131,8 @@ export type Database = {
         Update: {
           created_at?: string | null
           episode_id?: string
+          final_correct?: boolean | null
+          final_wager?: number | null
           id?: string
           is_winner?: boolean
           placement?: number | null

@@ -14,6 +14,8 @@ export interface TeamMember {
   questions_seen: number;
   questions_correct: number;
   points_scored: number;
+  final_wager: number | null;
+  final_correct: boolean | null;
 }
 
 export interface TeamResult {
@@ -22,6 +24,8 @@ export interface TeamResult {
   team_color: string;
   is_winner: boolean;
   placement: number | null;
+  final_wager: number | null;
+  final_correct: boolean | null;
   members: TeamMember[];
 }
 
@@ -68,6 +72,8 @@ export function TeamCard({
       questions_seen: 0,
       questions_correct: 0,
       points_scored: 0,
+      final_wager: null,
+      final_correct: null,
     };
     updateTeam("members", [...team.members, newMember]);
   }
@@ -98,9 +104,16 @@ export function TeamCard({
   }
 
   // Calculate team totals
-  const teamTotalPoints = team.members.reduce((sum, m) => sum + m.points_scored, 0);
+  const memberPoints = team.members.reduce((sum, m) => sum + m.points_scored, 0);
   const teamTotalCorrect = team.members.reduce((sum, m) => sum + m.questions_correct, 0);
-  const teamTotalSeen = team.members.reduce((sum, m) => sum + m.questions_seen, 0);
+  // All team members see the same questions, so use max instead of sum
+  const teamTotalSeen = Math.max(...team.members.map((m) => m.questions_seen), 0);
+  // Include Final Beopardy wager in total points
+  let finalBeopardyPoints = 0;
+  if (team.final_wager != null && team.final_correct !== null) {
+    finalBeopardyPoints = team.final_correct ? team.final_wager : -team.final_wager;
+  }
+  const teamTotalPoints = memberPoints + finalBeopardyPoints;
 
   return (
     <Card
@@ -296,6 +309,37 @@ export function TeamCard({
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Team Final Beopardy */}
+        <div className="mt-4 pt-4 border-t border-border">
+          <h4 className="text-sm font-medium text-text-secondary mb-3">Team Final Beopardy</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Wager"
+              type="number"
+              value={team.final_wager ?? ""}
+              onChange={(e) =>
+                updateTeam("final_wager", e.target.value ? parseInt(e.target.value) : null)
+              }
+              min={0}
+              disabled={disabled}
+              placeholder="0"
+            />
+            <Select
+              label="Result"
+              value={team.final_correct === null ? "" : team.final_correct ? "correct" : "incorrect"}
+              onChange={(e) =>
+                updateTeam("final_correct", e.target.value === "" ? null : e.target.value === "correct")
+              }
+              options={[
+                { value: "", label: "Did not participate" },
+                { value: "correct", label: "Correct" },
+                { value: "incorrect", label: "Incorrect" },
+              ]}
+              disabled={disabled}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

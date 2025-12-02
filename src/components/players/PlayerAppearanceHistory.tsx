@@ -157,9 +157,16 @@ export function PlayerAppearanceHistory({ appearances }: PlayerAppearanceHistory
                   </TableCell>
                   <TableCell className="text-center hidden xl:table-cell">
                     {appearance.final_correct !== null ? (
-                      <Badge variant={appearance.final_correct ? "success" : "error"}>
-                        {appearance.final_correct ? "Correct" : "Wrong"}
-                      </Badge>
+                      <div className="flex flex-col items-center gap-0.5">
+                        <Badge variant={appearance.final_correct ? "success" : "error"}>
+                          {appearance.final_correct ? "Correct" : "Wrong"}
+                        </Badge>
+                        {appearance.final_wager != null && appearance.final_wager > 0 && (
+                          <span className={`text-xs font-medium ${appearance.final_correct ? "text-green-600" : "text-red-600"}`}>
+                            {appearance.final_correct ? "+" : "-"}{appearance.final_wager}
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-text-muted">—</span>
                     )}
