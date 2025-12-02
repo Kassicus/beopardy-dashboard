@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+:root {
+  /* Primary Accent - Terracotta Red */
+  --color-terracotta: #AC4838;
+  --color-terracotta-light: #C45A4A;
+  --color-terracotta-dark: #8A3A2D;
+
+  /* Secondary Accent - Dusty Rose */
+  --color-rose: #C57F87;
+  --color-rose-light: #D4999F;
+  --color-rose-dark: #A6656D;
+
+  /* Tertiary Accent - Golden Mustard */
+  --color-golden: #CFB56A;
+  --color-golden-light: #DCC885;
+  --color-golden-dark: #B89D4F;
+
+  /* Quaternary Accent - Warm Cream */
+  --color-cream: #DACDA3;
+  --color-cream-light: #E8DFC0;
+  --color-cream-dark: #C4B586;
+
+  /* Neutrals */
+  --background: #FAFAFA;
+  --foreground: #1F2937;
+  --surface: #FFFFFF;
+  --border: #E5E7EB;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+}
+
+@theme inline {
+  /* Background & Foreground */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  /* Beopardy Brand Colors */
+  --color-beo-terracotta: var(--color-terracotta);
+  --color-beo-terracotta-light: var(--color-terracotta-light);
+  --color-beo-terracotta-dark: var(--color-terracotta-dark);
+
+  --color-beo-rose: var(--color-rose);
+  --color-beo-rose-light: var(--color-rose-light);
+  --color-beo-rose-dark: var(--color-rose-dark);
+
+  --color-beo-golden: var(--color-golden);
+  --color-beo-golden-light: var(--color-golden-light);
+  --color-beo-golden-dark: var(--color-golden-dark);
+
+  --color-beo-cream: var(--color-cream);
+  --color-beo-cream-light: var(--color-cream-light);
+  --color-beo-cream-dark: var(--color-cream-dark);
+
+  /* Fonts */
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-jakarta), system-ui, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Accessibility: Skip to content link */
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.skip-to-content:focus {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: auto;
+  padding: 1rem;
+  background: var(--color-terracotta);
+  color: white;
+  text-align: center;
+  font-weight: 600;
+  z-index: 100;
+  outline: none;
+}
+
+/* Focus visible styles for better keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--color-terracotta);
+  outline-offset: 2px;
+}
+
+/* Remove default focus outline, use focus-visible instead */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-cream-dark);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-rose);
+}

@@ -1,0 +1,211 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { episodeSchema, type EpisodeFormData } from "@/lib/validations/episode";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { ROUTES } from "@/lib/constants";
+import toast from "react-hot-toast";
+import type { Tables } from "@/types/database";
+
+interface EpisodeFormProps {
+  episode?: Tables<"episodes">;
+  mode: "create" | "edit";
+}
+
+export function EpisodeForm({ episode, mode }: EpisodeFormProps) {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<keyof EpisodeFormData, string>>>({});
+
+  const [formData, setFormData] = useState<EpisodeFormData>({
+    title: episode?.title ?? "",
+    episode_number: episode?.episode_number ?? 1,
+    season: episode?.season ?? 1,
+    air_date: episode?.air_date ?? "",
+    youtube_url: episode?.youtube_url ?? "",
+    thumbnail_url: episode?.thumbnail_url ?? "",
+    description: episode?.description ?? "",
+  });
+
+  function handleChange(field: keyof EpisodeFormData, value: string | number) {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrors({});
+
+    const result = episodeSchema.safeParse(formData);
+    if (!result.success) {
+      const fieldErrors: Partial<Record<keyof EpisodeFormData, string>> = {};
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof EpisodeFormData;
+        fieldErrors[field] = issue.message;
+      });
+      setErrors(fieldErrors);
+      setIsLoading(false);
+      return;
+    }
+
+    const supabase = createClient();
+
+    try {
+      const episodeData = {
+        title: formData.title,
+        episode_number: formData.episode_number,
+        season: formData.season,
+        air_date: formData.air_date,
+        youtube_url: formData.youtube_url || null,
+        thumbnail_url: formData.thumbnail_url || null,
+        description: formData.description || null,
+      };
+
+      if (mode === "create") {
+        const { error } = await supabase.from("episodes").insert(episodeData);
+
+        if (error) throw error;
+
+        toast.success("Episode created successfully!");
+        router.push(ROUTES.admin.episodes);
+        router.refresh();
+      } else if (episode) {
+        const { error } = await supabase
+          .from("episodes")
+          .update(episodeData)
+          .eq("id", episode.id);
+
+        if (error) throw error;
+
+        toast.success("Episode updated successfully!");
+        router.push(ROUTES.admin.episodes);
+        router.refresh();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "An error occurred";
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <Card variant="outlined">
+      <CardHeader>
+        <CardTitle>{mode === "create" ? "Add New Episode" : "Edit Episode"}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Input
+            label="Title"
+            value={formData.title}
+            onChange={(e) => handleChange("title", e.target.value)}
+            placeholder="e.g., Beopardy: Movie Madness"
+            error={errors.title}
+            required
+            disabled={isLoading}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Season"
+              type="number"
+              value={formData.season}
+              onChange={(e) => handleChange("season", parseInt(e.target.value) || 1)}
+              min={1}
+              error={errors.season}
+              required
+              disabled={isLoading}
+            />
+            <Input
+              label="Episode Number"
+              type="number"
+              value={formData.episode_number}
+              onChange={(e) => handleChange("episode_number", parseInt(e.target.value) || 1)}
+              min={1}
+              error={errors.episode_number}
+              required
+              disabled={isLoading}
+            />
+          </div>
+
+          <Input
+            label="Air Date"
+            type="date"
+            value={formData.air_date}
+            onChange={(e) => handleChange("air_date", e.target.value)}
+            error={errors.air_date}
+            required
+            disabled={isLoading}
+          />
+
+          <Input
+            label="YouTube URL"
+            value={formData.youtube_url ?? ""}
+            onChange={(e) => handleChange("youtube_url", e.target.value)}
+            placeholder="https://youtube.com/watch?v=..."
+            error={errors.youtube_url}
+            helperText="Optional. Link to the episode on YouTube."
+            disabled={isLoading}
+          />
+
+          <Input
+            label="Thumbnail URL"
+            value={formData.thumbnail_url ?? ""}
+            onChange={(e) => handleChange("thumbnail_url", e.target.value)}
+            placeholder="https://example.com/thumbnail.jpg"
+            error={errors.thumbnail_url}
+            helperText="Optional. URL for the episode thumbnail."
+            disabled={isLoading}
+          />
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">
+              Description
+            </label>
+            <textarea
+              value={formData.description ?? ""}
+              onChange={(e) => handleChange("description", e.target.value)}
+              placeholder="Brief description of the episode..."
+              rows={3}
+              disabled={isLoading}
+              className={`
+                w-full px-3 py-2
+                bg-surface border rounded-lg
+                text-foreground placeholder:text-text-muted
+                transition-colors duration-200
+                focus:outline-none focus:ring-2 focus:ring-beo-terracotta/50 focus:border-beo-terracotta
+                disabled:opacity-50 disabled:cursor-not-allowed
+                ${errors.description ? "border-red-500" : "border-border"}
+              `}
+            />
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-500">{errors.description}</p>
+            )}
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button type="submit" isLoading={isLoading}>
+              {mode === "create" ? "Create Episode" : "Save Changes"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}

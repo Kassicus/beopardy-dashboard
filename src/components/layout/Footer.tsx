@@ -1,0 +1,52 @@
+import Link from "next/link";
+import { ROUTES } from "@/lib/constants";
+
+export function Footer() {
+  return (
+    <footer className="bg-surface border-t border-border mt-auto" role="contentinfo">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <Link href="/" className="flex items-center gap-2" aria-label="Beopardy Stats - Home">
+              <span className="text-xl font-bold font-display text-beo-terracotta">
+                Beopardy
+              </span>
+              <span className="text-sm font-medium text-text-secondary">Stats</span>
+            </Link>
+            <p className="mt-2 text-sm text-text-muted max-w-md">
+              Tracking player statistics from the Smosh Pit Beopardy game show.
+              Not affiliated with Smosh or Jeopardy.
+            </p>
+          </div>
+
+          <nav className="flex flex-wrap gap-6 text-sm" aria-label="Footer navigation">
+            <Link
+              href={ROUTES.players}
+              className="text-text-secondary hover:text-beo-terracotta transition-colors"
+            >
+              Players
+            </Link>
+            <Link
+              href={ROUTES.episodes}
+              className="text-text-secondary hover:text-beo-terracotta transition-colors"
+            >
+              Episodes
+            </Link>
+            <Link
+              href={ROUTES.leaderboards}
+              className="text-text-secondary hover:text-beo-terracotta transition-colors"
+            >
+              Leaderboards
+            </Link>
+          </nav>
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-border">
+          <p className="text-xs text-text-muted text-center">
+            &copy; {new Date().getFullYear()} Beopardy Stats. Fan project.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}

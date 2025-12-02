@@ -1,0 +1,10 @@
+# Beopardy Stats - robots.txt
+
+User-agent: *
+Allow: /
+
+# Block admin pages from indexing
+Disallow: /admin/
+
+# Sitemap location
+Sitemap: https://beopardy-stats.vercel.app/sitemap.xml
