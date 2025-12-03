@@ -19,7 +19,6 @@ export function Footer() {
             </Link>
             <p className="mt-2 text-sm text-text-muted max-w-md">
               Tracking player statistics from the Smosh Pit Beopardy game show.
-              Not affiliated with Smosh or Jeopardy.
             </p>
           </div>
 
@@ -47,7 +46,7 @@ export function Footer() {
 
         <div className="mt-8 pt-6 border-t border-border">
           <p className="text-xs text-text-muted text-center">
-            &copy; {new Date().getFullYear()} Beopardy Stats. Fan project.
+            Made with <span className="text-red-500">♥</span> in Salt Lake City, Utah
           </p>
         </div>
       </div>
