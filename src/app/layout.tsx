@@ -3,6 +3,7 @@ import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { BuyMeACoffee } from "@/components/BuyMeACoffee";
 import "./globals.css";
 
 const inter = Inter({
@@ -58,6 +59,7 @@ export default function RootLayout({
         <main id="main-content" className="flex-1" role="main">
           {children}
         </main>
+        <BuyMeACoffee />
         <Footer />
         <Toaster
           position="bottom-right"
